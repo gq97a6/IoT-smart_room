@@ -2,8 +2,11 @@
 #include <constants.h>
 #define ADDRESS "cen"
 
-#define STRIP_LEN_L 78
-#define STRIP_LEN_P 78
+#define STRIP_LEN_LA 2
+#define STRIP_LEN_LB 76
+
+#define STRIP_LEN_PA 6
+#define STRIP_LEN_PB 72
 
 #define STRIP_PIN_L 5
 #define STRIP_PIN_P 18
@@ -54,8 +57,11 @@ WiFiClient wifiClient;
 PubSubClient client(wifiClient);
 AsyncUDP udp;
 
-CRGB stripL[STRIP_LEN_L];
-CRGB stripP[STRIP_LEN_P];
+CRGB stripLA[STRIP_LEN_LA];
+CRGB stripLB[STRIP_LEN_LB];
+
+CRGB stripPA[STRIP_LEN_PA];
+CRGB stripPB[STRIP_LEN_PB];
 
 CRGB stripI[3];
 
@@ -78,8 +84,6 @@ byte potenPos;
 bool valve;
 String queryS;
 String lastStripColor;
-String lastStripColorA;
-String lastStripColorB;
 
 void setup()
 {
@@ -103,8 +107,10 @@ void setup()
   digitalWrite(SUPPLY_5_PIN, HIGH);
   digitalWrite(SUPPLY_12_PIN, HIGH);
 
-  FastLED.addLeds<WS2812B, STRIP_PIN_L, GRB>(stripL, STRIP_LEN_L);
-  FastLED.addLeds<WS2812B, STRIP_PIN_P, GRB>(stripP, STRIP_LEN_P);
+  FastLED.addLeds<WS2812B, STRIP_PIN_L, GRB>(stripLA, STRIP_LEN_LA).setCorrection(CRGB(255, 255, 255));
+  FastLED.addLeds<WS2812B, STRIP_PIN_L, GRB>(stripLB, STRIP_LEN_LB).setCorrection(CRGB(255, 255, 255));
+  FastLED.addLeds<WS2812B, STRIP_PIN_P, GRB>(stripPA, STRIP_LEN_PA).setCorrection(CRGB(255, 255, 255));
+  FastLED.addLeds<WS2812B, STRIP_PIN_P, GRB>(stripPB, STRIP_LEN_PB).setCorrection(CRGB(255, 255, 255));
   FastLED.addLeds<WS2812B, STRIP_PIN_I, GRB>(stripI, 3).setCorrection(CRGB(255, 179, 166));
   FastLED.setBrightness(255);
 
@@ -196,7 +202,7 @@ void setup()
   terminal("bout;7;#000000");
 
   //Set white color as default
-  terminal("scwip;#616161;#5471ff");
+  terminal("cwip;#FFFFFF");
 }
 
 void loop()
@@ -250,7 +256,7 @@ void loop()
 
     if (c5) {
       digitalWrite(SUPPLY_5_PIN, LOW);
-      terminal("scwip;" + lastStripColorA + ";" + lastStripColorB);
+      terminal("cwip;" + lastStripColor);
       FastLED.show();
     } else {
       terminal("cwip;#000000;1");
@@ -310,6 +316,19 @@ void loop()
   //ALL / Restart
   if (b.areAll(HIGH)) {
     terminal("reset");
+  }
+
+  //Led strips
+//  Fire2012();
+//  rainbow();
+//  confetti();
+//  sinelon();
+//  bpm();
+
+  delay(1000 / FRAMES_PER_SECOND);
+  EVERY_N_MILLISECONDS(20)
+  {
+    gHue++;
   }
 }
 
@@ -459,6 +478,126 @@ byte potenHandle()
   return potenPos;
 }
 
+//-------------------------------------------------------------------------------- Strip functions
+//void colorWipe(uint32_t color, int wait, int first, int last)
+//{
+//  for (int i = first; i <= last; i++)
+//  {
+//    stripL[i] = color;
+//    stripP[i] = color;
+//    FastLED.show();
+//
+//    delay(wait);
+//  }
+//}
+//
+//#define COOLING  55
+//#define SPARKING 120
+//#define NUM_LEDS  156
+//
+//void Fire2012()
+//{
+//  if (anim == 5)
+//  {
+//    // Array of temperature readings at each simulation cell
+//    static byte heat[NUM_LEDS];
+//
+//    // Step 1. Cool down every cell a little
+//    for (int i = 0; i < NUM_LEDS; i++)
+//    {
+//      heat[i] = qsub8(heat[i], random8(0, ((COOLING * 10) / NUM_LEDS) + 2));
+//    }
+//
+//    // Step 2. Heat from each cell drifts 'up' and diffuses a little
+//    for (int k = NUM_LEDS - 1; k >= 2; k--)
+//    {
+//      heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3;
+//    }
+//
+//    // Step 3. Randomly ignite new 'sparks' of heat near the bottom
+//    if (random8() < SPARKING)
+//    {
+//      int y = random8(7);
+//      heat[y] = qadd8(heat[y], random8(160, 255));
+//    }
+//
+//    // Step 4. Map from heat cells to LED colors
+//    for (int j = 0; j < NUM_LEDS; j++)
+//    {
+//      CRGB color = HeatColor(heat[j]);
+//
+//      if (j < 78)
+//      {
+//        stripP[77 - j] = color;
+//      }
+//      else
+//      {
+//        stripL[j - 78] = color;
+//      }
+//    }
+//
+//    FastLED.show();
+//  }
+//}
+//
+//void rainbow()
+//{
+//  if (anim == 1)
+//  {
+//    fill_rainbow(stripL, 78, gHue, 7);
+//    fill_rainbow(stripP, 78, gHue, 7);
+//
+//    FastLED.show();
+//  }
+//}
+//
+//void confetti()
+//{
+//  if (anim == 2)
+//  {
+//    fadeToBlackBy(stripL, 78, 10);
+//    fadeToBlackBy(stripP, 78, 10);
+//    int pos = random16(78);
+//    stripP[pos] += CHSV(gHue + random8(64), 200, 255);
+//    stripL[pos] = stripP[pos];
+//
+//    FastLED.show();
+//  }
+//}
+//
+//void sinelon()
+//{
+//  if (anim == 3)
+//  {
+//    fadeToBlackBy(stripP, 78, 20);
+//    fadeToBlackBy(stripL, 78, 20);
+//
+//    int pos = beatsin16(13, 0, 78 - 1);
+//    stripP[pos] += CHSV(gHue, 255, 192);
+//    stripL[pos] = stripP[pos];
+//
+//    FastLED.show();
+//  }
+//}
+//
+//void bpm()
+//{
+//  if (anim == 4)
+//  {
+//    uint8_t BeatsPerMinute = 62;
+//    uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
+//
+//    CRGBPalette16 palette = PartyColors_p;
+//    for (int i = 0; i < 78; i++) //9948
+//    {
+//      stripP[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
+//      stripL[i] = stripP[i];
+//    }
+//
+//    FastLED.show();
+//  }
+//}
+
 int toIntColor(char hexColor[])
 {
   int base = 1;
@@ -543,50 +682,63 @@ void terminal(String command)
   if (cmd[0] == "cwip")
   {
     if(cmd[2] != "1") lastStripColor = cmd[1];
-
+    
     cmd[1].toUpperCase();
     cmd[1].toCharArray(charArray, 8);
     int color = toIntColor(charArray);
-    
-    fill_solid(stripL, STRIP_LEN_L, color);
-    fill_solid(stripP, STRIP_LEN_P, color);
 
-    FastLED.show();
-  }
-  if(cmd[0] == "scwip")
-  {
-    if(cmd[3] != "1") {
-      lastStripColorA = cmd[1];
-      lastStripColorB = cmd[2];
+    for (int i = 0; i < STRIP_LEN_LA; i++)
+    {
+      stripLA[i] = color;
     }
 
-    cmd[1].toUpperCase();
-    cmd[1].toCharArray(charArray, 8);
-    int colorA = toIntColor(charArray);
+    for (int i = 0; i < STRIP_LEN_LB; i++)
+    {
+      stripLB[i] = color;
+    }
 
-    cmd[2].toUpperCase();
-    cmd[2].toCharArray(charArray, 8);
-    int colorB = toIntColor(charArray);
-    
-    fill_solid(stripL, STRIP_LEN_L, colorA);
-    fill_solid(stripP, STRIP_LEN_P, colorA);
+    for (int i = 0; i < STRIP_LEN_PA; i++)
+    {
+      stripPA[i] = color;
+    }
 
-    fill_solid(stripL, 2, colorB);
-    fill_solid(stripP, 6, colorB);
+    for (int i = 0; i < STRIP_LEN_PB; i++)
+    {
+      stripPB[i] = color;
+    }
 
     FastLED.show();
+    FastLED.show();
   }
+  //-------------------------------------------------------------------------------- Set color of one diode
   else if (cmd[0] == "setd")
-  {
-    cmd[1].toCharArray(charArray, 8);
-    int color = toIntColor(charArray);
-    int num = cmd[2].toInt();
-    
-    if(num < STRIP_LEN_L && num < STRIP_LEN_P) {
-      stripP[num] = color;
-      stripL[num] = color;
-      FastLED.show();
-    }
+  { //TODO
+//    cmd[1].toUpperCase();
+//    cmd[1].toCharArray(charArray, 8);
+//    int colorA = toIntColor(charArray);
+//
+//    cmd[1] = cmd[1].substring(0, 3) + decToHex(hexToDec(cmd[1].substring(3, 5)) * 70 / 100, 2) + decToHex(hexToDec(cmd[1].substring(5)) * 65 / 100, 2);
+//    cmd[1].toUpperCase();
+//    cmd[1].toCharArray(charArray, 8);
+//    int colorB = toIntColor(charArray);
+//
+//    if (cmd[2].toInt() < 2)
+//    {
+//      stripL[cmd[2].toInt()] = colorA;
+//      stripP[cmd[2].toInt()] = colorA;
+//    }
+//    else if (cmd[2].toInt() < 6)
+//    {
+//      stripL[cmd[2].toInt()] = colorB;
+//      stripP[cmd[2].toInt()] = colorA;
+//    }
+//    else
+//    {
+//      stripL[cmd[2].toInt()] = colorB;
+//      stripP[cmd[2].toInt()] = colorB;
+//    }
+//
+//    FastLED.show();
   }
   else if (cmd[0] == "infd")
   {
